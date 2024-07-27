@@ -3,24 +3,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <raylib.h>
 #include "baralho.h"
 
 #define QUANTIDADE_DE_CARTAS 52
 #define TAMANHO_DO_VETOR 51
 
-// Função que cria uma lista
+// FunÃ§Ã£o que cria uma lista
 ListaCircEnc* criaListaCircEnc()
 {
     ListaCircEnc *lista = (ListaCircEnc*)malloc(sizeof(ListaCircEnc));
     if (lista != NULL)
     {
         lista->prim = NULL;
+        lista->fim = NULL;
+        printf("criei a lista vazia");
     }
     return lista;
 }
 
-// Função que destrói uma lista
+// FunÃ§Ã£o que destrÃ³i uma lista
 void destroiListaCircEnc(ListaCircEnc *lista)
 {
     if (lista->prim != NULL)
@@ -37,26 +39,9 @@ void destroiListaCircEnc(ListaCircEnc *lista)
     free(lista);
 }
 
-// Função que imprime todos os nós de uma lista
-void imprimeListaCircEnc(ListaCircEnc *lista)
-{
-    if (lista->prim != NULL)
-    {
-        NodoLEnc *atual = lista->prim;
-        do
-        {
-            printf("Chave: %d, Valor: %d, Naipe: %s\n", atual->info.chave, atual->info.valor, atual->info.naipe);
-            atual = atual->prox;
-        }
-        while (atual != lista->prim);
-    }
-    else
-    {
-        printf("Lista vazia.\n");
-    }
-}
 
-// Função que insere um nó no início de uma lista
+
+// FunÃ§Ã£o que insere um nÃ³ no inÃ­cio de uma lista
 int insereInicioListaCircEnc(ListaCircEnc *lista, Info info)
 {
     NodoLEnc *novo = (NodoLEnc*)malloc(sizeof(NodoLEnc));
@@ -68,10 +53,11 @@ int insereInicioListaCircEnc(ListaCircEnc *lista, Info info)
         novo->prox = novo;
         novo->ant = novo;
         lista->prim = novo;
+        lista->fim = novo;  // Atualiza o ponteiro fim
     }
     else
     {
-        NodoLEnc *ultimo = lista->prim->ant;
+        NodoLEnc *ultimo = lista->fim;
         novo->prox = lista->prim;
         novo->ant = ultimo;
         lista->prim->ant = novo;
@@ -81,115 +67,174 @@ int insereInicioListaCircEnc(ListaCircEnc *lista, Info info)
     return 1;
 }
 
-void insereFimListaCircEnc(ListaCircEnc *lista, Info info) {
+int insereFimListaCircEnc(ListaCircEnc *lista, Info info)
+{
     NodoLEnc *novoNodo = (NodoLEnc*)malloc(sizeof(NodoLEnc));
-    if (!novoNodo) {
+    if (!novoNodo)
+    {
         return 0;
     }
 
     novoNodo->info = info;
 
-    if (lista->prim == NULL) {
+    if (lista->prim == NULL)
+    {
         lista->prim = novoNodo;
+        lista->fim = novoNodo;
         novoNodo->prox = novoNodo;
         novoNodo->ant = novoNodo;
-    } else {
-        NodoLEnc *ultimo = lista->prim->ant;
+    }
+    else
+    {
+        NodoLEnc *ultimo = lista->fim;
         novoNodo->prox = lista->prim;
         novoNodo->ant = ultimo;
         ultimo->prox = novoNodo;
         lista->prim->ant = novoNodo;
+        lista->fim = novoNodo;  // Atualiza o ponteiro fim
     }
-
     return 1;
 }
 
-// Função que resgata um nó com uma informação de uma lista
-NodoLEnc* buscaInfoListaCircEnc(ListaCircEnc* lista, int chave)
+
+
+void carrega_imagem_cartas(ListaCircEnc* baralho)
 {
-    if (lista->prim != NULL)
+    NodoLEnc *carta;
+    int i, quant_cartas_mesmo_valor = 1, valor_da_carta = 1;
+    int primeiro_numero = 0, segundo_numero = 0;
+    char nome[30];
+
+
+    carta = baralho->prim;
+
+    for(i=0; i < QUANTIDADE_DE_CARTAS; i++)
     {
-        NodoLEnc *atual = lista->prim;
-        do
+        if(quant_cartas_mesmo_valor == 1)
         {
-            if (atual->info.chave == chave) return atual;
-            atual = atual->prox;
+            if(valor_da_carta < 10)
+            {
+                strcpy(nome, "cartas/0_of_clubs.png");
+                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
+            }
+            else
+            {
+                strcpy(nome, "cartas/00_of_clubs.png");
+                primeiro_numero = valor_da_carta/10;
+                nome[7] = '0' + primeiro_numero;
+                segundo_numero = valor_da_carta%10;
+                nome[8] = '0' + segundo_numero;
+            }
+            quant_cartas_mesmo_valor++;
+
         }
-        while (atual != lista->prim);
+        else if(quant_cartas_mesmo_valor == 2)
+        {
+            if(valor_da_carta < 10)
+            {
+                strcpy(nome, "cartas/0_of_diamonds.png");
+                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
+            }
+            else
+            {
+                strcpy(nome, "cartas/00_of_diamonds.png");
+                primeiro_numero = valor_da_carta/10;
+                nome[7] = '0' + primeiro_numero;
+                segundo_numero = valor_da_carta%10;
+                nome[8] = '0' + segundo_numero;
+            }
+            quant_cartas_mesmo_valor++;
+        }
+        else if(quant_cartas_mesmo_valor == 3)
+        {
+            if(valor_da_carta < 10)
+            {
+                strcpy(nome, "cartas/0_of_hearts.png");
+                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
+            }
+            else
+            {
+                strcpy(nome, "cartas/00_of_hearts.png");
+                primeiro_numero = valor_da_carta/10;
+                nome[7] = '0' + primeiro_numero;
+                segundo_numero = valor_da_carta%10;
+                nome[8] = '0' + segundo_numero;
+            }
+            quant_cartas_mesmo_valor++;
+        }
+        else if(quant_cartas_mesmo_valor == 4)
+        {
+            if(valor_da_carta < 10)
+            {
+                strcpy(nome, "cartas/0_of_spades.png");
+                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
+            }
+            else
+            {
+                strcpy(nome, "cartas/00_of_spades.png");
+                primeiro_numero = valor_da_carta/10;
+                nome[7] = '0' + primeiro_numero;
+                segundo_numero = valor_da_carta%10;
+                nome[8] = '0' + segundo_numero;
+            }
+            quant_cartas_mesmo_valor = 1;
+            valor_da_carta++;
+        }
+        Image imagem_carta = LoadImage(nome);
+        ImageResize(&imagem_carta, (imagem_carta.width - imagem_carta.width * 0.8), (imagem_carta.height - imagem_carta.height * 0.8));
+        carta->info.Imagem_carta = LoadTextureFromImage(imagem_carta);
+        UnloadImage(imagem_carta);
+        carta = carta->prox;
     }
-    return NULL;
+
 }
 
-ListaCircEnc* cria_baralho(){
+
+ListaCircEnc* cria_baralho()
+{
     ListaCircEnc *baralho = criaListaCircEnc();
-    NodoLEnc *carta;
+    NodoLEnc *carta = (NodoLEnc*)malloc(sizeof(NodoLEnc));
     int i, valor_da_carta = 1, quant_cartas_mesmo_valor = 1;
 
-    baralho->prim = carta;
 
-    for(i = 0; i < QUANTIDADE_DE_CARTAS; i++){ //preenchendo as infos das cartas
+    for(i = 0; i < QUANTIDADE_DE_CARTAS; i++)  //preenchendo as infos das cartas
+    {
         carta->info.chave = i+1;
         carta->info.valor = valor_da_carta;
         carta->info.sentido = 0;
 
-        if(quant_cartas_mesmo_valor == 1){
+        if(quant_cartas_mesmo_valor == 1)
+        {
             strcpy(carta->info.naipe, "paus");
         }
-        else if(quant_cartas_mesmo_valor == 2){
+        else if(quant_cartas_mesmo_valor == 2)
+        {
             strcpy(carta->info.naipe, "ouros");
         }
-        else if(quant_cartas_mesmo_valor == 3){
+        else if(quant_cartas_mesmo_valor == 3)
+        {
             strcpy(carta->info.naipe, "copas");
         }
-        else if(quant_cartas_mesmo_valor == 4){
+        else if(quant_cartas_mesmo_valor == 4)
+        {
             strcpy(carta->info.naipe, "espadas");
             valor_da_carta++;
             quant_cartas_mesmo_valor = 1;  //reinicia a contagem apos 4 naipes;
         }
         quant_cartas_mesmo_valor++;
         insereFimListaCircEnc(baralho, carta->info);
-        free(carta);
+
 
     }
+    carrega_imagem_cartas(baralho);
+
+    ///AVISO: o que eu fiz asseguir foi para consertar o problema da inversao
+    /// dos pnteiros de prim e fim do baralho, nÃ£o encontrei onde o erro esta acontecendo
+    /// mas o codiigo que segue conserta isso.
+    carta = baralho->prim;
+    baralho->prim = baralho->fim;
+    baralho->fim = carta;
 
     return baralho;
 
 }
-
-ListaCircEnc* embaralha_baralho()
-{
-
-    int cartas[TAMANHO_DO_VETOR];
-    int cartas_embaralhadas[TAMANHO_DO_VETOR];
-    int i, j, aux, menor_valor = 1;
-
-    srand(time(NULL));
-
-    //preenchendo o vetor de 1 a 52
-    for(i = 0; i <= QUANTIDADE_DE_CARTAS; i++)
-    {
-        cartas[i] = i + 1;
-    }
-    //algoritimo de Fisher-Yates para embaralhar os valores no vetor
-    for(i = TAMANHO_DO_VETOR; i >= 0 ; i--)
-    {
-        j = rand() % (i + 1);
-        aux = cartas[i];
-        cartas[i] = cartas[j];
-        cartas[j] = aux;
-    }
-
-    //passando os valores embaralhados para o novo vetor
-    for(i = 0; i <= TAMANHO_DO_VETOR; i++)
-    {
-        cartas_embaralhadas[i] = cartas[i];
-    }
-
-
-    for(i = 0; i <= TAMANHO_DO_VETOR; i++){
-
-    }
-}
-
-
-
