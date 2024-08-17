@@ -5,23 +5,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <raylib.h>
+#include "carta.h"
+
+
 
 #define NOME_NAIPE 10
 #define TAMANHO_NOME_IMAGEM 30
 
-typedef struct
-{
-    int chave;
-    int valor;
-    char naipe[NOME_NAIPE];
-    int sentido; //de costas (0) ou de frente (1);
-
-    Texture2D Imagem_carta;
-
-
-} Carta;
-
-typedef Carta Info;
 
 typedef struct nodoLEnc
 {
@@ -45,12 +35,19 @@ void destroiListaCircEnc(ListaCircEnc *lista);
 // Funcao que insere um nodo no inicio de uma lista
 int insereInicioListaCircEnc(ListaCircEnc *lista, Info info);
 
-// FunÃ§Ã£o que insere um nodo no fim de uma lista
+// Função que insere um nodo no fim de uma lista
 int insereFimListaCircEnc(ListaCircEnc *lista, Info info);
 
 void carrega_imagem_cartas(ListaCircEnc* baralho);
 
 ListaCircEnc* cria_baralho();
+
+
+ListaCircEnc* embaralha_baralho(ListaCircEnc* baralho);
+
+NodoLEnc* buscaInfoListaCircEnc(ListaCircEnc* lista, int chave);
+
+Info remove_carta_fim(ListaCircEnc *baralho);
 
 
 

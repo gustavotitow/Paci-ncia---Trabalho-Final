@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <raylib.h>
-#include "baralho.h"
+
 
 #define QUANTIDADE_DE_CARTAS 52
 #define TAMANHO_DO_VETOR 51
 
-// FunÃ§Ã£o que cria uma lista
+// Função que cria uma lista
 ListaCircEnc* criaListaCircEnc()
 {
     ListaCircEnc *lista = (ListaCircEnc*)malloc(sizeof(ListaCircEnc));
@@ -22,7 +22,7 @@ ListaCircEnc* criaListaCircEnc()
     return lista;
 }
 
-// FunÃ§Ã£o que destrÃ³i uma lista
+// Função que destrói uma lista
 void destroiListaCircEnc(ListaCircEnc *lista)
 {
     if (lista->prim != NULL)
@@ -41,7 +41,7 @@ void destroiListaCircEnc(ListaCircEnc *lista)
 
 
 
-// FunÃ§Ã£o que insere um nÃ³ no inÃ­cio de uma lista
+// Função que insere um nó no início de uma lista
 int insereInicioListaCircEnc(ListaCircEnc *lista, Info info)
 {
     NodoLEnc *novo = (NodoLEnc*)malloc(sizeof(NodoLEnc));
@@ -96,145 +96,97 @@ int insereFimListaCircEnc(ListaCircEnc *lista, Info info)
     return 1;
 }
 
+Info remove_carta_fim(ListaCircEnc *baralho){
+    NodoLEnc *carta = baralho->fim;
+    Info info = carta->info;
 
-
-void carrega_imagem_cartas(ListaCircEnc* baralho)
-{
-    NodoLEnc *carta;
-    int i, quant_cartas_mesmo_valor = 1, valor_da_carta = 1;
-    int primeiro_numero = 0, segundo_numero = 0;
-    char nome[30];
-
-
-    carta = baralho->prim;
-
-    for(i=0; i < QUANTIDADE_DE_CARTAS; i++)
-    {
-        if(quant_cartas_mesmo_valor == 1)
-        {
-            if(valor_da_carta < 10)
-            {
-                strcpy(nome, "cartas/0_of_clubs.png");
-                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
-            }
-            else
-            {
-                strcpy(nome, "cartas/00_of_clubs.png");
-                primeiro_numero = valor_da_carta/10;
-                nome[7] = '0' + primeiro_numero;
-                segundo_numero = valor_da_carta%10;
-                nome[8] = '0' + segundo_numero;
-            }
-            quant_cartas_mesmo_valor++;
-
-        }
-        else if(quant_cartas_mesmo_valor == 2)
-        {
-            if(valor_da_carta < 10)
-            {
-                strcpy(nome, "cartas/0_of_diamonds.png");
-                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
-            }
-            else
-            {
-                strcpy(nome, "cartas/00_of_diamonds.png");
-                primeiro_numero = valor_da_carta/10;
-                nome[7] = '0' + primeiro_numero;
-                segundo_numero = valor_da_carta%10;
-                nome[8] = '0' + segundo_numero;
-            }
-            quant_cartas_mesmo_valor++;
-        }
-        else if(quant_cartas_mesmo_valor == 3)
-        {
-            if(valor_da_carta < 10)
-            {
-                strcpy(nome, "cartas/0_of_hearts.png");
-                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
-            }
-            else
-            {
-                strcpy(nome, "cartas/00_of_hearts.png");
-                primeiro_numero = valor_da_carta/10;
-                nome[7] = '0' + primeiro_numero;
-                segundo_numero = valor_da_carta%10;
-                nome[8] = '0' + segundo_numero;
-            }
-            quant_cartas_mesmo_valor++;
-        }
-        else if(quant_cartas_mesmo_valor == 4)
-        {
-            if(valor_da_carta < 10)
-            {
-                strcpy(nome, "cartas/0_of_spades.png");
-                nome[7] = '0' + valor_da_carta; //convertendo inteiro para char
-            }
-            else
-            {
-                strcpy(nome, "cartas/00_of_spades.png");
-                primeiro_numero = valor_da_carta/10;
-                nome[7] = '0' + primeiro_numero;
-                segundo_numero = valor_da_carta%10;
-                nome[8] = '0' + segundo_numero;
-            }
-            quant_cartas_mesmo_valor = 1;
-            valor_da_carta++;
-        }
-        Image imagem_carta = LoadImage(nome);
-        ImageResize(&imagem_carta, (imagem_carta.width - imagem_carta.width * 0.8), (imagem_carta.height - imagem_carta.height * 0.8));
-        carta->info.Imagem_carta = LoadTextureFromImage(imagem_carta);
-        UnloadImage(imagem_carta);
-        carta = carta->prox;
+    if(baralho->prim == baralho->fim){ ///quando baralho so tem um nodo
+        baralho->prim = NULL;
+        baralho->fim = NULL;
+    } else{ ///quando baralho tem mais de um nodo;
+    baralho->fim->ant->prox = baralho->prim;
+    baralho->fim->prox->ant = baralho->fim->ant;
+    baralho->fim = baralho->fim->ant;
     }
-
+    free(carta);
+    return info;
 }
 
 
-ListaCircEnc* cria_baralho()
-{
+ListaCircEnc* cria_baralho(){
+    FILE *txtcartas;
+    txtcartas = fopen("cartas.txt", "r");
+    char nome_imagem [40];
     ListaCircEnc *baralho = criaListaCircEnc();
-    NodoLEnc *carta = (NodoLEnc*)malloc(sizeof(NodoLEnc));
-    int i, valor_da_carta = 1, quant_cartas_mesmo_valor = 1;
 
 
-    for(i = 0; i < QUANTIDADE_DE_CARTAS; i++)  //preenchendo as infos das cartas
-    {
-        carta->info.chave = i+1;
-        carta->info.valor = valor_da_carta;
+
+    for (int i=0; i< QUANTIDADE_DE_CARTAS; i++) {
+        NodoLEnc *carta = (NodoLEnc*)malloc(sizeof(NodoLEnc));
+        fscanf(txtcartas, " %d %s %d %s", &carta->info.valor, carta->info.naipe, &carta->info.chave, nome_imagem);
         carta->info.sentido = 0;
+         carta->info.posicaoCarta = (Vector2){0, 0};
 
-        if(quant_cartas_mesmo_valor == 1)
-        {
-            strcpy(carta->info.naipe, "paus");
-        }
-        else if(quant_cartas_mesmo_valor == 2)
-        {
-            strcpy(carta->info.naipe, "ouros");
-        }
-        else if(quant_cartas_mesmo_valor == 3)
-        {
-            strcpy(carta->info.naipe, "copas");
-        }
-        else if(quant_cartas_mesmo_valor == 4)
-        {
-            strcpy(carta->info.naipe, "espadas");
-            valor_da_carta++;
-            quant_cartas_mesmo_valor = 1;  //reinicia a contagem apos 4 naipes;
-        }
-        quant_cartas_mesmo_valor++;
+        Image imagem_carta = LoadImage(nome_imagem);
+        ImageResize(&imagem_carta, (imagem_carta.width - imagem_carta.width * 0.85), (imagem_carta.height - imagem_carta.height * 0.85));
+        carta->info.Imagem_carta = LoadTextureFromImage(imagem_carta);///algo faz o programa morrer aqui, mas eu não consegui encontrar
+        printf("      passei     ");
+        UnloadImage(imagem_carta);
+
         insereFimListaCircEnc(baralho, carta->info);
+        free(carta);
+        }
 
-
-    }
-    carrega_imagem_cartas(baralho);
-
-    ///AVISO: o que eu fiz asseguir foi para consertar o problema da inversao
-    /// dos pnteiros de prim e fim do baralho, nÃ£o encontrei onde o erro esta acontecendo
-    /// mas o codiigo que segue conserta isso.
-    carta = baralho->prim;
-    baralho->prim = baralho->fim;
-    baralho->fim = carta;
-
+        //embaralha_baralho(baralho)
     return baralho;
 
 }
+
+
+ListaCircEnc* embaralha_baralho(ListaCircEnc* baralho)
+{
+    int cartas[QUANTIDADE_DE_CARTAS];
+    int i, j, aux;
+    ListaCircEnc *baralho_embaralhado = criaListaCircEnc();
+    NodoLEnc *nodoAux;
+
+    srand(time(NULL));
+
+    // Preenchendo o vetor de 1 a 52
+    for(i = 0; i < QUANTIDADE_DE_CARTAS; i++) {
+        cartas[i] = i + 1;
+    }
+
+    // Algoritmo de Fisher-Yates para embaralhar os valores no vetor
+    for(i = QUANTIDADE_DE_CARTAS - 1; i > 0; i--) {
+        j = rand() % (i + 1);
+        aux = cartas[i];
+        cartas[i] = cartas[j];
+        cartas[j] = aux;
+    }
+
+    // Passando os valores embaralhados para o novo baralho
+    for (int k = 0; k < QUANTIDADE_DE_CARTAS; k++) {
+        nodoAux = buscaInfoListaCircEnc(baralho, cartas[k]);
+        insereInicioListaCircEnc(baralho_embaralhado, nodoAux->info);
+    }
+
+    return baralho_embaralhado;
+}
+
+NodoLEnc* buscaInfoListaCircEnc(ListaCircEnc* lista, int chave)
+{
+    if (lista->prim != NULL)
+    {
+        NodoLEnc *atual = lista->prim;
+        do
+        {
+            if (atual->info.chave == chave) return atual;
+            atual = atual->prox;
+        }
+        while (atual != lista->prim);
+    }
+    return NULL;
+}
+
+
